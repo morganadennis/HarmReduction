@@ -7,7 +7,7 @@
     {
         static void Main(string[] args)
         {
-            string dataFile = "C:\\Users\\morga\\Dropbox\\Morgan Documents\\Penn State\\Courses\\IE 570\\Group Project\\Zip Code Data Summary.xlsx";
+            string dataFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Optimization\\Model and Data", "Input Data.xlsx");
             DataReader reader = new(dataFile);
             List<Node> nodes = reader.GetNodes();
             Console.WriteLine($"{nodes.Count} nodes read successfully");

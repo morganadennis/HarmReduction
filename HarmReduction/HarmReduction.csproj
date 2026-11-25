@@ -12,4 +12,10 @@
     <PackageReference Include="Gurobi.Optimizer" Version="14.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Optimization\Model and Data\Input Data.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

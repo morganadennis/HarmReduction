@@ -76,58 +76,48 @@ namespace HarmReduction.Optimization
             _gModel.ModelSense = GRB.MAXIMIZE;
             _gModel.Set(GRB.DoubleParam.MIPGap, 0.01);
             _gModel.Update();
-            _gModel.Write("C:\\Users\\morga\\Dropbox\\Morgan Documents\\Penn State\\Courses\\IE 570\\Group Project\\Model.lp");
             _gModel.Optimize();
-            if (_gModel.Status != GRB.Status.OPTIMAL)
+            
+            // Report the solution
+            for (int i = 1; i <= 2; i++)
             {
-                _gModel.ComputeIIS();
-                _gModel.Write("C:\\Users\\morga\\Dropbox\\Morgan Documents\\Penn State\\Courses\\IE 570\\Group Project\\Infeasible.ilp");
-            }
-            else
-            {
-                _gModel.Write("C:\\Users\\morga\\Dropbox\\Morgan Documents\\Penn State\\Courses\\IE 570\\Group Project\\Solution.sol");
+                BuildVars bVars = i == 1 ? buildVarsYear1 : buildVarsYear4;
+                AssignmentVars aVars = i == 1 ? assignmentVarsYear1 : assignmentVarsYear4;
+                List<PeopleServed> naloxoneConstrs = i == 1 ? naloxoneConstrsYear1 : naloxoneConstrsYear4;
+                List<PeopleServed> referralConstrs = i == 1 ? referralConstrsYear1 : referralConstrsYear4;
 
-                // Report the solution
-                for (int i = 1; i <= 2; i++)
+                int count = 0;
+                double totalNaloxone = 0.0;
+                double totalReferrals = 0.0;
+                foreach (Node thisNode in _nodes)
                 {
-                    BuildVars bVars = i == 1 ? buildVarsYear1 : buildVarsYear4;
-                    AssignmentVars aVars = i == 1 ? assignmentVarsYear1 : assignmentVarsYear4;
-                    List<PeopleServed> naloxoneConstrs = i == 1 ? naloxoneConstrsYear1 : naloxoneConstrsYear4;
-                    List<PeopleServed> referralConstrs = i == 1 ? referralConstrsYear1 : referralConstrsYear4;
-
-                    int count = 0;
-                    double totalNaloxone = 0.0;
-                    double totalReferrals = 0.0;
-                    foreach (Node thisNode in _nodes)
+                    if (bVars.GetBuildVar(thisNode).X > 0.5)
                     {
-                        if (bVars.GetBuildVar(thisNode).X > 0.5)
+                        count++;
+                        double naloxoneAmt = 0.0;
+                        foreach (PeopleServed nConstr in naloxoneConstrs)
                         {
-                            count++;
-                            double naloxoneAmt = 0.0;
-                            foreach (PeopleServed nConstr in naloxoneConstrs)
-                            {
-                                naloxoneAmt += nConstr.GetVar(thisNode).X;
-                            }
-                            naloxoneAmt /= numSamples;
-
-                            double referralAmt = 0.0;
-                            foreach (PeopleServed rConstr in referralConstrs)
-                            {
-                                referralAmt += rConstr.GetVar(thisNode).X;
-                            }
-                            referralAmt /= numSamples;
-
-                            Console.WriteLine($"{thisNode.ZipCode}_{thisNode.County}_{thisNode.Population} (Population)_{Math.Round(naloxoneAmt, 0)} (Naloxone)_{Math.Round(referralAmt, 0)} (Referrals)");
-                            totalNaloxone += naloxoneAmt;
-                            totalReferrals += referralAmt;
+                            naloxoneAmt += nConstr.GetVar(thisNode).X;
                         }
-                    }
+                        naloxoneAmt /= numSamples;
 
-                    Console.WriteLine($"Year {(i == 1 ? "1" : "4")} Summary: {count} built, {Math.Round(totalNaloxone, 0)} Naloxone doses served, {Math.Round(totalReferrals, 0)} referrals given");
+                        double referralAmt = 0.0;
+                        foreach (PeopleServed rConstr in referralConstrs)
+                        {
+                            referralAmt += rConstr.GetVar(thisNode).X;
+                        }
+                        referralAmt /= numSamples;
+
+                        Console.WriteLine($"{thisNode.ZipCode}_{thisNode.County}_{thisNode.Population} (Population)_{Math.Round(naloxoneAmt, 0)} (Naloxone)_{Math.Round(referralAmt, 0)} (Referrals)");
+                        totalNaloxone += naloxoneAmt;
+                        totalReferrals += referralAmt;
+                    }
+                }
+
+                Console.WriteLine($"Year {(i == 1 ? "1" : "4")} Summary: {count} built, {Math.Round(totalNaloxone, 0)} Naloxone doses served, {Math.Round(totalReferrals, 0)} referrals given");
                                                         
-                    Console.WriteLine();
-                }            
-            }            
+                Console.WriteLine();
+            }           
         }       
     }
 }
